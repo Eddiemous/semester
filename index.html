@@ -39,7 +39,7 @@
 const MC={auth:{clientId:"0df2d0e3-3af4-4594-95c6-b25056d195ca",authority:"https://login.microsoftonline.com/bimengine.se",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}};
 const SP="https://edmonse.sharepoint.com/sites/BIMENGINE";
 const LIST="Semesterschema2026";
-const SCOPES=["https://edmonse.sharepoint.com/.default","User.Read"];
+const SCOPES=["https://edmonse.sharepoint.com/.default"];
 const msalApp=new msal.PublicClientApplication(MC);
 
 async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in");try{const r=await msalApp.acquireTokenSilent({scopes:SCOPES,account:a[0]});return r.accessToken;}catch(e){const r=await msalApp.acquireTokenPopup({scopes:SCOPES,account:a[0]});return r.accessToken;}}

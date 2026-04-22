@@ -191,7 +191,7 @@ function App(){
     setSaving(true);
     try{
       if(v){await deleteSP(v.Id);setItems(prev=>prev.filter(i=>i.Id!==v.Id));note("Semester borttagen");}
-      else{const r=await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Semester"});if(r&&r.d)setItems(prev=>[...prev,r.d]);note("Semester sparad");}
+      else{await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Semester"});const fresh=await loadSP();setItems(fresh);note("Semester sparad");}
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
   }
@@ -200,15 +200,15 @@ function App(){
     setSaving(true);
     try{
       if(j){await deleteSP(j.Id);setItems(prev=>prev.filter(i=>i.Id!==j.Id));note("Jour borttagen");}
-      else{const r=await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Jour"});if(r&&r.d)setItems(prev=>[...prev,r.d]);note("Jour sparad");}
+      else{await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Jour"});const fresh=await loadSP();setItems(fresh);note("Jour sparad");}
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
   }
   async function approveItems(v,j,val){
     setSaving(true);
     try{
-      if(v){await updateSP(v.Id,{Godkand:val});setItems(prev=>prev.map(i=>i.Id===v.Id?{...i,Godkand:val}:i));}
-      if(j){await updateSP(j.Id,{Godkand:val});setItems(prev=>prev.map(i=>i.Id===j.Id?{...i,Godkand:val}:i));}
+      if(v&&v.Id){await updateSP(v.Id,{Godkand:val});setItems(prev=>prev.map(i=>i.Id===v.Id?{...i,Godkand:val}:i));}
+      if(j&&j.Id){await updateSP(j.Id,{Godkand:val});setItems(prev=>prev.map(i=>i.Id===j.Id?{...i,Godkand:val}:i));}
       note(val?"Godkänd ✓":"Ångrat");
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
@@ -216,8 +216,8 @@ function App(){
   async function deleteItems(v,j){
     setSaving(true);
     try{
-      if(v){await deleteSP(v.Id);setItems(prev=>prev.filter(i=>i.Id!==v.Id));}
-      if(j){await deleteSP(j.Id);setItems(prev=>prev.filter(i=>i.Id!==j.Id));}
+      if(v&&v.Id){await deleteSP(v.Id);setItems(prev=>prev.filter(i=>i.Id!==v.Id));}
+      if(j&&j.Id){await deleteSP(j.Id);setItems(prev=>prev.filter(i=>i.Id!==j.Id));}
       note("Borttagen");setPopup(null);
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);

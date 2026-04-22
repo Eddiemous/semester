@@ -56,7 +56,7 @@ const LOGIN_SCOPES=["User.Read"];
 const SP_SCOPES=["https://edmonse.sharepoint.com/AllSites.Write"];
 const msalApp=new msal.PublicClientApplication(MC);
 async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in");try{const r=await msalApp.acquireTokenSilent({scopes:SP_SCOPES,account:a[0]});return r.accessToken;}catch(e){const r=await msalApp.acquireTokenPopup({scopes:SP_SCOPES,account:a[0]});return r.accessToken;}}
-async function spApi(path,opts={}){const tok=await getTok();const r=await fetch(SP+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});if(!r.ok)throw new Error("SP "+r.status+": "+await r.text().catch(()=>""));if(r.status===204)return null;return r.json();}
+async function spApi(path,opts={}){const tok=await getTok();const r=await fetch(SP+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});if(!r.ok)throw new Error("SP "+r.status+": "+await r.text().catch(()=>""));if(r.status===204||r.status===200&&r.headers.get("content-length")==="0")return null;const txt=await r.text();if(!txt||!txt.trim())return null;try{return JSON.parse(txt);}catch(e){return null;}}
 async function loadSP(){const d=await spApi("web/lists/getByTitle('"+LIST+"')/items?$select=Id,AnstalldId,AnstalldNamn,Veckonummer,Semestertyp,Godkand,Kommentar&$top=5000");return d.d.results;}
 async function dig(){const d=await spApi("contextinfo",{method:"POST"});return d.d.GetContextWebInformation.FormDigestValue;}
 async function createSP(it){const dg=await dig();return spApi("web/lists/getByTitle('"+LIST+"')/items",{method:"POST",body:JSON.stringify({__metadata:{type:"SP.Data.Semesterschema2026ListItem"},AnstalldId:it.empId,AnstalldNamn:it.empName,Veckonummer:it.week,Semestertyp:it.type,Godkand:false,Kommentar:""}),headers:{"X-RequestDigest":dg}});}
@@ -190,7 +190,7 @@ function App(){
     const p=popup;if(!p)return;
     setSaving(true);
     try{
-      if(v){await deleteSP(v.Id);setItems(prev=>prev.filter(i=>i.Id!==v.Id));note("Semester borttagen");}
+      if(v){await deleteSP(v.Id);const _fv=await loadSP();setItems(_fv);note("Semester borttagen");}
       else{await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Semester"});const fresh=await loadSP();setItems(fresh);note("Semester sparad");}
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
@@ -199,7 +199,7 @@ function App(){
     const p=popup;if(!p)return;
     setSaving(true);
     try{
-      if(j){await deleteSP(j.Id);setItems(prev=>prev.filter(i=>i.Id!==j.Id));note("Jour borttagen");}
+      if(j){await deleteSP(j.Id);const _fj=await loadSP();setItems(_fj);note("Jour borttagen");}
       else{await createSP({empId:p.eid,empName:p.ename,week:p.week,type:"Jour"});const fresh=await loadSP();setItems(fresh);note("Jour sparad");}
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
@@ -216,9 +216,9 @@ function App(){
   async function deleteItems(v,j){
     setSaving(true);
     try{
-      if(v&&v.Id){await deleteSP(v.Id);setItems(prev=>prev.filter(i=>i.Id!==v.Id));}
-      if(j&&j.Id){await deleteSP(j.Id);setItems(prev=>prev.filter(i=>i.Id!==j.Id));}
-      note("Borttagen");setPopup(null);
+      if(v&&v.Id){await deleteSP(v.Id);const _fv=await loadSP();setItems(_fv);}
+      if(j&&j.Id){await deleteSP(j.Id);const _fj=await loadSP();setItems(_fj);}
+      const _fd=await loadSP();setItems(_fd);note("Borttagen");setPopup(null);
     }catch(e){note("Fel: "+e.message);}
     setSaving(false);
   }

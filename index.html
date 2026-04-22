@@ -42,7 +42,7 @@ const LIST="Semesterschema2026";
 const LOGIN_SCOPES=["User.Read"];const SP_SCOPES=["https://edmonse.sharepoint.com/AllSites.Write"];
 const msalApp=new msal.PublicClientApplication(MC);
 
-async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in"scopes:SP_SCOPES=await msalApp.acquireTokenSilent({scopes:SCOPES,account:a[0]});return r.accessToken;}cascopes:SP_SCOPESr=await msalApp.acquireTokenPopup({scopes:SCOPES,account:a[0]});return r.accessToken;}}
+async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in");try{const r=await msalApp.acquireTokenSilent({scopes:SP_SCOPES,account:a[0]});return r.accessToken;}catch(e){const r=await msalApp.acquireTokenPopup({scopes:SP_SCOPES,account:a[0]});return r.accessToken;}}
 
 async function spApi(path,opts={}){const tok=await getTok();const r=await fetch(SP+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});if(!r.ok)throw new Error("SP "+r.status+": "+await r.text().catch(()=>""));if(r.status===204)return null;return r.json();}
 

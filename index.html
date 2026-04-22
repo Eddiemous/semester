@@ -39,10 +39,10 @@
 const MC={auth:{clientId:"0df2d0e3-3af4-4594-95c6-b25056d195ca",authority:"https://login.microsoftonline.com/bimengine.se",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}};
 const SP="https://edmonse.sharepoint.com/sites/BIMENGINE";
 const LIST="Semesterschema2026";
-const SCOPES=["https://edmonse.sharepoint.com/.default"];
+const LOGIN_SCOPES=["User.Read"];const SP_SCOPES=["https://edmonse.sharepoint.com/AllSites.Write"];
 const msalApp=new msal.PublicClientApplication(MC);
 
-async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in");try{const r=await msalApp.acquireTokenSilent({scopes:SCOPES,account:a[0]});return r.accessToken;}catch(e){const r=await msalApp.acquireTokenPopup({scopes:SCOPES,account:a[0]});return r.accessToken;}}
+async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in"scopes:SP_SCOPES=await msalApp.acquireTokenSilent({scopes:SCOPES,account:a[0]});return r.accessToken;}cascopes:SP_SCOPESr=await msalApp.acquireTokenPopup({scopes:SCOPES,account:a[0]});return r.accessToken;}}
 
 async function spApi(path,opts={}){const tok=await getTok();const r=await fetch(SP+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});if(!r.ok)throw new Error("SP "+r.status+": "+await r.text().catch(()=>""));if(r.status===204)return null;return r.json();}
 
@@ -83,7 +83,7 @@ function App(){
   function note(m){setToast(m);setTimeout(()=>setToast(""),2500);}
   React.useEffect(()=>{msalApp.initialize().then(()=>{msalApp.handleRedirectPromise().then(r=>{const a=r?r.account:msalApp.getAllAccounts()[0];if(a)setAcc(a);}).catch(e=>setAuthErr(e.message));});},[]);
   React.useEffect(()=>{if(!acc)return;setDataLoad(true);loadSP().then(d=>{setItems(d);setDataLoad(false);}).catch(e=>{note("Fel: "+e.message);setDataLoad(false);});},[acc]);
-  async function login(){setAuthLoad(true);setAuthErr(null);try{await msalApp.loginRedirect({scopes:SCOPES});}catch(e){setAuthErr(e.message);setAuthLoad(false);}}
+  async function login(){setAuthLoad(true);setAuthErr(null);try{await msalApp.loginRedirect({scopes:LOGIN_SCOPES});}catch(e){setAuthErr(e.message);setAuthLoad(false);}}
   async function toggle(eid,ename,week,type){const ex=items.find(i=>i.AnstalldId===eid&&i.Veckonummer===week&&i.Semestertyp===type);setSaving(true);try{if(ex){await deleteSP(ex.Id);setItems(p=>p.filter(i=>i.Id!==ex.Id));note("Borttagen");}else{const r=await createSP({empId:eid,empName:ename,week,type});if(r)setItems(p=>[...p,r.d]);note("Sparad");}}catch(e){note("Fel: "+e.message);}setSaving(false);}
   async function approve(item,val){setSaving(true);try{await updateSP(item.Id,{Godkand:val});setItems(p=>p.map(i=>i.Id===item.Id?{...i,Godkand:val}:i));note(val?"Godkänd ✓":"Ångrat");}catch(e){note("Fel: "+e.message);}setSaving(false);}
   const gi=(eid,w)=>items.filter(i=>i.AnstalldId===eid&&i.Veckonummer===w);

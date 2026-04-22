@@ -10,384 +10,128 @@
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <style>
-  :root {
-    --bg: oklch(98.6% 0.004 80);
-    --bg-2: oklch(96.5% 0.006 80);
-    --bg-3: oklch(94% 0.008 80);
-    --panel: #fff;
-    --ink: oklch(22% 0.01 80);
-    --ink-2: oklch(42% 0.012 80);
-    --ink-3: oklch(62% 0.012 80);
-    --line: oklch(90% 0.006 80);
-    --line-2: oklch(85% 0.008 80);
-    --vacation: oklch(88% 0.16 95);
-    --vacation-ink: oklch(40% 0.12 80);
-    --vacation-edge: oklch(78% 0.17 92);
-    --oncall: oklch(89% 0.09 150);
-    --oncall-ink: oklch(36% 0.09 150);
-    --oncall-edge: oklch(78% 0.12 148);
-    --approved: oklch(58% 0.14 255);
-    --approved-soft: oklch(94% 0.03 255);
-    --warn: oklch(62% 0.18 30);
-    --warn-soft: oklch(95% 0.035 30);
-    --shadow-sm: 0 1px 2px rgba(20,18,12,0.04), 0 1px 1px rgba(20,18,12,0.03);
-    --shadow-md: 0 8px 24px -12px rgba(20,18,12,0.14), 0 2px 6px -2px rgba(20,18,12,0.06);
-    --shadow-lg: 0 20px 50px -20px rgba(20,18,12,0.22);
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; }
-  button { font-family: inherit; }
 
-.auth-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
-.auth-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:48px 56px;text-align:center;max-width:420px;box-shadow:var(--shadow-lg)}
-.auth-title{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px}
-.auth-sub{font-size:14px;color:var(--ink-2);margin-bottom:32px;line-height:1.6}
-.btn-ms{background:#0078d4;color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:background .15s}
-.btn-ms:hover{background:#106ebe}
-.btn-ms:disabled{opacity:.6;cursor:not-allowed}
-.auth-err{color:#c0392b;font-size:13px;margin-top:14px}
-.save-toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 18px;font-size:12px;color:var(--ink-2);box-shadow:var(--shadow-md);z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
-.save-toast.show{opacity:1}
-table{border-collapse:collapse}
-th,td{border:1px solid var(--line)}
+  :root{--bg:oklch(98.6% 0.004 80);--bg-2:oklch(96.5% 0.006 80);--bg-3:oklch(94% 0.008 80);--panel:#fff;--ink:oklch(22% 0.01 80);--ink-2:oklch(42% 0.012 80);--ink-3:oklch(62% 0.012 80);--line:oklch(90% 0.006 80);--line-2:oklch(85% 0.008 80);--vacation:oklch(88% 0.16 95);--vacation-ink:oklch(40% 0.12 80);--vacation-edge:oklch(78% 0.17 92);--oncall:oklch(89% 0.09 150);--oncall-ink:oklch(36% 0.09 150);--oncall-edge:oklch(78% 0.12 148);--approved:oklch(58% 0.14 255);--approved-soft:oklch(94% 0.03 255);--warn:oklch(62% 0.18 30);--warn-soft:oklch(95% 0.035 30);--shadow-sm:0 1px 2px rgba(20,18,12,0.04);--shadow-md:0 8px 24px -12px rgba(20,18,12,0.14);--shadow-lg:0 20px 50px -20px rgba(20,18,12,0.22)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  button{font-family:inherit}
+  .auth-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+  .auth-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:40px 52px;text-align:center;max-width:400px;box-shadow:var(--shadow-lg)}
+  .auth-title{font-size:21px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  .auth-sub{font-size:13px;color:var(--ink-2);margin-bottom:28px;line-height:1.6}
+  .btn-ms{background:#0078d4;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:9px;transition:background .15s}
+  .btn-ms:hover{background:#106ebe}
+  .btn-ms:disabled{opacity:.6;cursor:not-allowed}
+  .auth-err{color:#c0392b;font-size:12px;margin-top:12px}
+  .toast{position:fixed;bottom:18px;right:18px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 16px;font-size:12px;color:var(--ink-2);box-shadow:var(--shadow-md);z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+  .toast.show{opacity:1}
+  table{border-collapse:collapse}
+  th,td{border:1px solid var(--line)}
+
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const MSAL_CONFIG={auth:{clientId:"0df2d0e3-3af4-4594-95c6-b25056d195ca",authority:"https://login.microsoftonline.com/bimengine.se",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}};
-const SP_SITE="https://edmonse.sharepoint.com/sites/BIMENGINE";
-const SP_LIST="Semesterschema2026";
+
+const MC={auth:{clientId:"0df2d0e3-3af4-4594-95c6-b25056d195ca",authority:"https://login.microsoftonline.com/bimengine.se",redirectUri:window.location.origin+window.location.pathname},cache:{cacheLocation:"sessionStorage",storeAuthStateInCookie:false}};
+const SP="https://edmonse.sharepoint.com/sites/BIMENGINE";
+const LIST="Semesterschema2026";
 const SCOPES=["https://edmonse.sharepoint.com/.default","User.Read"];
-const msalInst=new msal.PublicClientApplication(MSAL_CONFIG);
+const msalApp=new msal.PublicClientApplication(MC);
 
-async function getToken(){
-  const acc=msalInst.getAllAccounts();
-  if(!acc.length)throw new Error("not signed in");
-  try{
-    const r=await msalInst.acquireTokenSilent({scopes:SCOPES,account:acc[0]});
-    return r.accessToken;
-  }catch(e){
-    const r=await msalInst.acquireTokenPopup({scopes:SCOPES,account:acc[0]});
-    return r.accessToken;
-  }
-}
+async function getTok(){const a=msalApp.getAllAccounts();if(!a.length)throw new Error("not signed in");try{const r=await msalApp.acquireTokenSilent({scopes:SCOPES,account:a[0]});return r.accessToken;}catch(e){const r=await msalApp.acquireTokenPopup({scopes:SCOPES,account:a[0]});return r.accessToken;}}
 
-async function spApi(path,opts={}){
-  const tok=await getToken();
-  const r=await fetch(SP_SITE+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});
-  if(!r.ok)throw new Error("SP "+r.status);
-  if(r.status===204)return null;
-  return r.json();
-}
+async function spApi(path,opts={}){const tok=await getTok();const r=await fetch(SP+"/_api/"+path,{...opts,headers:{"Authorization":"Bearer "+tok,"Accept":"application/json;odata=verbose","Content-Type":"application/json;odata=verbose",...(opts.headers||{})}});if(!r.ok)throw new Error("SP "+r.status+": "+await r.text().catch(()=>""));if(r.status===204)return null;return r.json();}
 
-async function loadItems(){
-  const d=await spApi("web/lists/getByTitle('"+SP_LIST+"')/items?\$select=Id,AnstalldId,AnstalldNamn,Veckonummer,Semestertyp,Godkand,Kommentar&\$top=5000");
-  return d.d.results;
-}
-
-async function digest(){
-  const d=await spApi("contextinfo",{method:"POST"});
-  return d.d.GetContextWebInformation.FormDigestValue;
-}
-
-async function createItem(it){
-  const dig=await digest();
-  return spApi("web/lists/getByTitle('"+SP_LIST+"')/items",{method:"POST",body:JSON.stringify({__metadata:{type:"SP.Data.Semesterschema2026ListItem"},AnstalldId:it.empId,AnstalldNamn:it.empName,Veckonummer:it.week,Semestertyp:it.type,Godkand:false,Kommentar:""}),headers:{"X-RequestDigest":dig}});
-}
-
-async function updateItem(id,changes){
-  const dig=await digest();
-  return spApi("web/lists/getByTitle('"+SP_LIST+"')/items("+id+")",{method:"POST",body:JSON.stringify({__metadata:{type:"SP.Data.Semesterschema2026ListItem"},...changes}),headers:{"X-RequestDigest":dig,"X-HTTP-Method":"MERGE","If-Match":"*"}});
-}
-
-async function deleteItem(id){
-  const dig=await digest();
-  return spApi("web/lists/getByTitle('"+SP_LIST+"')/items("+id+")",{method:"POST",headers:{"X-RequestDigest":dig,"X-HTTP-Method":"DELETE","If-Match":"*"}});
-}
+async function loadSP(){const d=await spApi("web/lists/getByTitle('"+LIST+"')/items?\$select=Id,AnstalldId,AnstalldNamn,Veckonummer,Semestertyp,Godkand,Kommentar&\$top=5000");return d.d.results;}
+async function dig(){const d=await spApi("contextinfo",{method:"POST"});return d.d.GetContextWebInformation.FormDigestValue;}
+async function createSP(it){const dg=await dig();return spApi("web/lists/getByTitle('"+LIST+"')/items",{method:"POST",body:JSON.stringify({__metadata:{type:"SP.Data.Semesterschema2026ListItem"},AnstalldId:it.empId,AnstalldNamn:it.empName,Veckonummer:it.week,Semestertyp:it.type,Godkand:false,Kommentar:""}),headers:{"X-RequestDigest":dg}});}
+async function updateSP(id,ch){const dg=await dig();return spApi("web/lists/getByTitle('"+LIST+"')/items("+id+")",{method:"POST",body:JSON.stringify({__metadata:{type:"SP.Data.Semesterschema2026ListItem"},...ch}),headers:{"X-RequestDigest":dg,"X-HTTP-Method":"MERGE","If-Match":"*"}});}
+async function deleteSP(id){const dg=await dig();return spApi("web/lists/getByTitle('"+LIST+"')/items("+id+")",{method:"POST",headers:{"X-RequestDigest":dg,"X-HTTP-Method":"DELETE","If-Match":"*"}});}
 
 
-const EMPLOYEES=[
-  {id:"NH",name:"Niklas Hugosson",   color:"#2d5a3e"},
-  {id:"AK",name:"Amanda Karlsson",   color:"#3a6b4a"},
-  {id:"FC",name:"Frida Clarstedt",   color:"#4a6e42"},
-  {id:"ME",name:"Mahdi El Mahdi",    color:"#5b7a4e"},
-  {id:"EM",name:"Edmon Moussally",   color:"#3d5c4a"},
-  {id:"AD",name:"Adrian Duveholt",   color:"#6b5a3e"},
-  {id:"HC",name:"Hedvig Cederberg",  color:"#5a4a6b"},
-  {id:"FF",name:"Franz Fjellman",    color:"#4e5c6b"}
-];
-
-const OFFICIAL=[28,29,30,31];
-
-function getWeeks(){
-  const weeks=[];
-  for(let w=18;w<=39;w++){
-    const jan4=new Date(2026,0,4);
-    const dow=jan4.getDay()||7;
-    const w1=new Date(jan4-((dow-1)*86400000));
-    const mon=new Date(w1.getTime()+(w-1)*7*86400000);
-    weeks.push({w,label:mon.getDate()+"/"+(mon.getMonth()+1)});
-  }
-  return weeks;
-}
-const WEEKS=getWeeks();
-
-const SunSvg=()=>React.createElement('svg',{width:13,height:13,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},
-  React.createElement('circle',{cx:12,cy:12,r:4}),
-  ...[0,45,90,135,180,225,270,315].map(a=>React.createElement('line',{key:a,
-    x1:12+6*Math.cos(a*Math.PI/180),y1:12+6*Math.sin(a*Math.PI/180),
-    x2:12+9*Math.cos(a*Math.PI/180),y2:12+9*Math.sin(a*Math.PI/180)
-  }))
-);
-const PhSvg=()=>React.createElement('svg',{width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},
-  React.createElement('path',{d:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.22a2 2 0 012-2.17h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"})
-);
-const ChkSvg=()=>React.createElement('svg',{width:10,height:10,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},
-  React.createElement('polyline',{points:"20 6 9 17 4 12"})
-);
-const MsLogo=()=>React.createElement('svg',{width:18,height:18,viewBox:"0 0 21 21"},
-  React.createElement('rect',{x:1,y:1,width:9,height:9,fill:"#f25022"}),
-  React.createElement('rect',{x:11,y:1,width:9,height:9,fill:"#7fba00"}),
-  React.createElement('rect',{x:1,y:11,width:9,height:9,fill:"#00a4ef"}),
-  React.createElement('rect',{x:11,y:11,width:9,height:9,fill:"#ffb900"})
-);
+const EMP=[{id:"NH",name:"Niklas Hugosson",c:"#2d5a3e"},{id:"AK",name:"Amanda Karlsson",c:"#3a6b4a"},{id:"FC",name:"Frida Clarstedt",c:"#4a6e42"},{id:"ME",name:"Mahdi El Mahdi",c:"#5b7a4e"},{id:"EM",name:"Edmon Moussally",c:"#3d5c4a"},{id:"AD",name:"Adrian Duveholt",c:"#6b5a3e"},{id:"HC",name:"Hedvig Cederberg",c:"#5a4a6b"},{id:"FF",name:"Franz Fjellman",c:"#4e5c6b"}];
+const OFF=[28,29,30,31];
+function wks(){const w=[];for(let i=18;i<=39;i++){const j=new Date(2026,0,4),d=j.getDay()||7,w1=new Date(j-(d-1)*864e5),m=new Date(w1.getTime()+(i-1)*7*864e5);w.push({w:i,l:m.getDate()+"/"+(m.getMonth()+1)});}return w;}
+const WKS=wks();
+const Sun=()=>React.createElement('svg',{width:12,height:12,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement('circle',{cx:12,cy:12,r:4}),...[0,45,90,135,180,225,270,315].map(a=>React.createElement('line',{key:a,x1:12+6*Math.cos(a*Math.PI/180),y1:12+6*Math.sin(a*Math.PI/180),x2:12+9*Math.cos(a*Math.PI/180),y2:12+9*Math.sin(a*Math.PI/180)})));
+const Ph=()=>React.createElement('svg',{width:11,height:11,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:2.5,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement('path',{d:"M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.01 2.22a2 2 0 012-2.17h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92z"}));
+const Chk=()=>React.createElement('svg',{width:9,height:9,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:3,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement('polyline',{points:"20 6 9 17 4 12"}));
+const MSLogo=()=>React.createElement('svg',{width:16,height:16,viewBox:"0 0 21 21"},React.createElement('rect',{x:1,y:1,width:9,height:9,fill:"#f25022"}),React.createElement('rect',{x:11,y:1,width:9,height:9,fill:"#7fba00"}),React.createElement('rect',{x:1,y:11,width:9,height:9,fill:"#00a4ef"}),React.createElement('rect',{x:11,y:11,width:9,height:9,fill:"#ffb900"}));
 
 
-function Cell({empId,empName,week,items,onToggle,onApprove,isChef}){
-  const vac=items.find(i=>i.Semestertyp==="Semester");
-  const jour=items.find(i=>i.Semestertyp==="Jour");
-  const cs={display:"flex",gap:2,alignItems:"center",justifyContent:"center",minHeight:30};
-  if(!vac&&!jour){
-    return React.createElement('div',{style:cs},
-      React.createElement('div',{
-        style:{width:26,height:26,borderRadius:6,border:"1px solid var(--line)",cursor:"pointer",opacity:.35,transition:"opacity .15s"},
-        onClick:()=>onToggle(empId,empName,week,"Semester"),title:"Lägg till semester"
-      })
-    );
-  }
-  const tags=[];
-  const mkTag=(item,type,Icon)=>{
-    const ok=item&&item.Godkand;
-    const clr=type==="Semester"?"--vacation":"--oncall";
-    const ink=type==="Semester"?"--vacation-ink":"--oncall-ink";
-    return React.createElement('div',{
-      key:type,
-      style:{display:"inline-flex",alignItems:"center",gap:3,padding:"3px 6px",borderRadius:6,fontSize:11,fontWeight:600,
-        background:ok?"var("+clr+")":"transparent",
-        border:ok?"none":"1.5px dashed var("+clr+")",
-        color:ok?"var("+ink+")":"var("+clr+")",
-        cursor:"pointer",transition:"all .15s"},
-      onClick:()=>isChef&&item?onApprove(item,!item.Godkand):onToggle(empId,empName,week,type),
-      title:ok?"Godkänd (klicka chef för att ångra)":"Väntar på godkännande"
-    },
-      React.createElement(Icon),
-      ok&&React.createElement(ChkSvg)
-    );
-  };
-  if(vac)tags.push(mkTag(vac,"Semester",SunSvg));
-  if(jour)tags.push(mkTag(jour,"Jour",PhSvg));
-  return React.createElement('div',{style:cs},...tags);
+function Cell({eid,ename,week,items,onToggle,onApprove}){
+  const v=items.find(i=>i.Semestertyp==="Semester"),j=items.find(i=>i.Semestertyp==="Jour");
+  const s={display:"flex",gap:2,alignItems:"center",justifyContent:"center",minHeight:30};
+  if(!v&&!j)return React.createElement('div',{style:s},React.createElement('div',{style:{width:26,height:26,borderRadius:6,border:"1px solid var(--line)",cursor:"pointer",opacity:.3},onClick:()=>onToggle(eid,ename,week,"Semester"),title:"Lägg till semester"}));
+  const mkT=(item,type,Icon)=>{const ok=item&&item.Godkand,cv=type==="Semester"?"--vacation":"--oncall",ci=type==="Semester"?"--vacation-ink":"--oncall-ink";return React.createElement('div',{key:type,style:{display:"inline-flex",alignItems:"center",gap:3,padding:"3px 6px",borderRadius:6,fontSize:10,fontWeight:600,background:ok?"var("+cv+")":"transparent",border:ok?"none":"1.5px dashed var("+cv+")",color:ok?"var("+ci+")":"var("+cv+")",cursor:"pointer",transition:"all .15s"},onClick:()=>item?onApprove(item,!item.Godkand):onToggle(eid,ename,week,type),title:ok?"Godkänd":"Väntar"},React.createElement(Icon),ok&&React.createElement(Chk));};
+  return React.createElement('div',{style:s},...[v&&mkT(v,"Semester",Sun),j&&mkT(j,"Jour",Ph)].filter(Boolean));
 }
 
 
 function App(){
-  const [acc,setAcc]=React.useState(null);
-  const [authLoading,setAuthLoading]=React.useState(false);
-  const [authErr,setAuthErr]=React.useState(null);
-  const [items,setItems]=React.useState([]);
-  const [dataLoading,setDataLoading]=React.useState(false);
-  const [toast,setToast]=React.useState("");
-  const [saving,setSaving]=React.useState(false);
-
-  function showToast(msg){setToast(msg);setTimeout(()=>setToast(""),2500);}
-
-  React.useEffect(()=>{
-    msalInst.initialize().then(()=>{
-      msalInst.handleRedirectPromise().then(r=>{
-        const a=r?r.account:msalInst.getAllAccounts()[0];
-        if(a)setAcc(a);
-      }).catch(e=>setAuthErr(e.message));
-    });
-  },[]);
-
-  React.useEffect(()=>{
-    if(!acc)return;
-    setDataLoading(true);
-    loadItems().then(d=>{setItems(d);setDataLoading(false);}).catch(e=>{showToast("Fel vid laddning: "+e.message);setDataLoading(false);});
-  },[acc]);
-
-  async function handleLogin(){
-    setAuthLoading(true);setAuthErr(null);
-    try{await msalInst.loginRedirect({scopes:SCOPES});}
-    catch(e){setAuthErr(e.message);setAuthLoading(false);}
-  }
-
-  async function handleToggle(empId,empName,week,type){
-    const existing=items.find(i=>i.AnstalldId===empId&&i.Veckonummer===week&&i.Semestertyp===type);
-    setSaving(true);
-    try{
-      if(existing){
-        await deleteItem(existing.Id);
-        setItems(p=>p.filter(i=>i.Id!==existing.Id));
-        showToast("Borttagen");
-      }else{
-        const r=await createItem({empId,empName,week,type});
-        if(r)setItems(p=>[...p,r.d]);
-        showToast("Sparad");
-      }
-    }catch(e){showToast("Fel: "+e.message);}
-    setSaving(false);
-  }
-
-  async function handleApprove(item,approve){
-    setSaving(true);
-    try{
-      await updateItem(item.Id,{Godkand:approve});
-      setItems(p=>p.map(i=>i.Id===item.Id?{...i,Godkand:approve}:i));
-      showToast(approve?"Godkänd ✓":"Ångrat");
-    }catch(e){showToast("Fel: "+e.message);}
-    setSaving(false);
-  }
-
-  const getItems=(empId,week)=>items.filter(i=>i.AnstalldId===empId&&i.Veckonummer===week);
-  const totalVac=items.filter(i=>i.Semestertyp==="Semester").length;
-  const apprVac=items.filter(i=>i.Semestertyp==="Semester"&&i.Godkand).length;
-  const totalJour=items.filter(i=>i.Semestertyp==="Jour").length;
-  const apprJour=items.filter(i=>i.Semestertyp==="Jour"&&i.Godkand).length;
-  const critCov=OFFICIAL.filter(w=>items.some(i=>i.Semestertyp==="Jour"&&i.Godkand&&i.Veckonummer===w)).length;
-
-  if(!acc){
-    return React.createElement('div',{className:"auth-overlay"},
-      React.createElement('div',{className:"auth-card"},
-        React.createElement('h2',{className:"auth-title"},"BIM Engine Semesterschema"),
-        React.createElement('p',{className:"auth-sub"},"Logga in med ditt Microsoft-konto (bimengine.se) för att visa och redigera semesterplaneringen för sommar 2026."),
-        React.createElement('button',{className:"btn-ms",onClick:handleLogin,disabled:authLoading},
-          React.createElement(MsLogo),authLoading?"Loggar in...":"Logga in med Microsoft"
-        ),
-        authErr&&React.createElement('div',{className:"auth-err"},authErr)
-      )
-    );
-  }
-
-  const S={
-    wrap:{padding:"20px 28px"},
-    header:{display:"flex",alignItems:"center",gap:16,marginBottom:20},
-    logo:{width:46,height:46,borderRadius:999,border:"2px solid var(--ink)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,color:"var(--ink)",flexShrink:0},
-    h1:{fontSize:24,fontWeight:800,color:"var(--ink)",margin:0},
-    sub:{fontSize:12,color:"var(--ink-2)",marginTop:3},
-    statsGrid:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16},
-    statCard:{background:"var(--panel)",border:"1px solid var(--line)",borderRadius:10,padding:"12px 16px"},
-    statLabel:{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"var(--ink-2)",marginBottom:4},
-    statNum:{fontSize:26,fontWeight:800,color:"var(--ink)",lineHeight:1},
-    statSub:{fontSize:10,color:"var(--ink-2)",marginTop:3},
-    legend:{display:"flex",gap:12,fontSize:11,color:"var(--ink-2)",alignItems:"center",marginBottom:10,flexWrap:"wrap"},
-    tableWrap:{overflowX:"auto"},
-    th:{padding:"6px 4px",fontSize:10,fontWeight:600,background:"var(--bg-2)",minWidth:44,textAlign:"center",whiteSpace:"nowrap"},
-    thSticky:{padding:"8px 10px",fontSize:11,fontWeight:600,background:"var(--bg-2)",minWidth:150,textAlign:"left",position:"sticky",left:0,zIndex:2},
-    td:{padding:"2px 3px",background:"var(--panel)",textAlign:"center"},
-    tdSticky:{padding:"6px 10px",background:"var(--panel)",position:"sticky",left:0,zIndex:1},
-    tdOfficial:{background:"oklch(97% 0.01 255)"},
-    avatar:{width:26,height:26,borderRadius:999,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#fff",flexShrink:0}
-  };
-
-  return React.createElement('div',{style:S.wrap},
-    React.createElement('div',{style:S.header},
-      React.createElement('div',{style:S.logo},"BE"),
+  const[acc,setAcc]=React.useState(null);
+  const[authLoad,setAuthLoad]=React.useState(false);
+  const[authErr,setAuthErr]=React.useState(null);
+  const[items,setItems]=React.useState([]);
+  const[dataLoad,setDataLoad]=React.useState(false);
+  const[toast,setToast]=React.useState("");
+  const[saving,setSaving]=React.useState(false);
+  function note(m){setToast(m);setTimeout(()=>setToast(""),2500);}
+  React.useEffect(()=>{msalApp.initialize().then(()=>{msalApp.handleRedirectPromise().then(r=>{const a=r?r.account:msalApp.getAllAccounts()[0];if(a)setAcc(a);}).catch(e=>setAuthErr(e.message));});},[]);
+  React.useEffect(()=>{if(!acc)return;setDataLoad(true);loadSP().then(d=>{setItems(d);setDataLoad(false);}).catch(e=>{note("Fel: "+e.message);setDataLoad(false);});},[acc]);
+  async function login(){setAuthLoad(true);setAuthErr(null);try{await msalApp.loginRedirect({scopes:SCOPES});}catch(e){setAuthErr(e.message);setAuthLoad(false);}}
+  async function toggle(eid,ename,week,type){const ex=items.find(i=>i.AnstalldId===eid&&i.Veckonummer===week&&i.Semestertyp===type);setSaving(true);try{if(ex){await deleteSP(ex.Id);setItems(p=>p.filter(i=>i.Id!==ex.Id));note("Borttagen");}else{const r=await createSP({empId:eid,empName:ename,week,type});if(r)setItems(p=>[...p,r.d]);note("Sparad");}}catch(e){note("Fel: "+e.message);}setSaving(false);}
+  async function approve(item,val){setSaving(true);try{await updateSP(item.Id,{Godkand:val});setItems(p=>p.map(i=>i.Id===item.Id?{...i,Godkand:val}:i));note(val?"Godkänd ✓":"Ångrat");}catch(e){note("Fel: "+e.message);}setSaving(false);}
+  const gi=(eid,w)=>items.filter(i=>i.AnstalldId===eid&&i.Veckonummer===w);
+  const tv=items.filter(i=>i.Semestertyp==="Semester").length,av=items.filter(i=>i.Semestertyp==="Semester"&&i.Godkand).length;
+  const tj=items.filter(i=>i.Semestertyp==="Jour").length,aj=items.filter(i=>i.Semestertyp==="Jour"&&i.Godkand).length;
+  const cc=OFF.filter(w=>items.some(i=>i.Semestertyp==="Jour"&&i.Godkand&&i.Veckonummer===w)).length;
+  if(!acc)return React.createElement('div',{className:"auth-overlay"},React.createElement('div',{className:"auth-card"},React.createElement('h2',{className:"auth-title"},"BIM Engine Semesterschema"),React.createElement('p',{className:"auth-sub"},"Logga in med ditt Microsoft-konto (bimengine.se) för att se och redigera semesterplaneringen 2026."),React.createElement('button',{className:"btn-ms",onClick:login,disabled:authLoad},React.createElement(MSLogo),authLoad?"Loggar in...":"Logga in med Microsoft"),authErr&&React.createElement('div',{className:"auth-err"},authErr)));
+  const T={th:{padding:"6px 3px",fontSize:10,fontWeight:600,background:"var(--bg-2)",minWidth:42,textAlign:"center"},thS:{padding:"8px 10px",fontSize:11,fontWeight:600,background:"var(--bg-2)",minWidth:150,textAlign:"left",position:"sticky",left:0,zIndex:2},td:{padding:"2px 2px",background:"var(--panel)",textAlign:"center"},tdS:{padding:"6px 10px",background:"var(--panel)",position:"sticky",left:0,zIndex:1},tdO:{background:"oklch(97% 0.01 255)"},av:{width:26,height:26,borderRadius:999,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,color:"#fff",flexShrink:0}};
+  return React.createElement('div',{style:{padding:"20px 24px"}},
+    React.createElement('div',{style:{display:"flex",alignItems:"center",gap:14,marginBottom:18}},
+      React.createElement('div',{style:{width:44,height:44,borderRadius:999,border:"2px solid var(--ink)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:13,flexShrink:0}},"BE"),
       React.createElement('div',null,
-        React.createElement('div',{style:{fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.08em",color:"var(--ink-2)",marginBottom:2}},"BIM ENGINE AB"),
-        React.createElement('h1',{style:S.h1},"Semester & Jour ",React.createElement('span',{style:{color:"var(--ink-3)",fontWeight:400}},"— Sommar 2026")),
-        React.createElement('div',{style:S.sub},"v.18–v.39 · maj–september · ",React.createElement('strong',null,EMPLOYEES.length," medarbetare")," · ",React.createElement('span',{style:{color:"var(--approved)",fontWeight:600}},"Officiell semester v.28–31"))
+        React.createElement('div',{style:{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:"var(--ink-2)",marginBottom:2}},"BIM ENGINE AB"),
+        React.createElement('h1',{style:{fontSize:22,fontWeight:800,color:"var(--ink)",margin:0}},"Semester & Jour ",React.createElement('span',{style:{color:"var(--ink-3)",fontWeight:400}},"— Sommar 2026")),
+        React.createElement('div',{style:{fontSize:11,color:"var(--ink-2)",marginTop:2}},"v.18–v.39 · maj–september · ",React.createElement('strong',null,EMP.length," medarbetare")," · ",React.createElement('span',{style:{color:"var(--approved)",fontWeight:600}},"Officiell semester v.28–31"))
       ),
-      React.createElement('div',{style:{marginLeft:"auto",display:"flex",gap:8,alignItems:"center"}},
-        React.createElement('span',{style:{fontSize:12,color:"var(--ink-2)",background:"var(--bg-2)",padding:"4px 12px",borderRadius:20,border:"1px solid var(--line)"}},acc.name||acc.username),
-        React.createElement('button',{onClick:()=>msalInst.logoutRedirect(),style:{padding:"5px 14px",borderRadius:20,border:"1px solid var(--line)",background:"transparent",color:"var(--ink-2)",fontSize:12,cursor:"pointer",fontFamily:"inherit"}},"Logga ut")
+      React.createElement('div',{style:{marginLeft:"auto",display:"flex",gap:7,alignItems:"center"}},
+        React.createElement('span',{style:{fontSize:12,color:"var(--ink-2)",background:"var(--bg-2)",padding:"4px 10px",borderRadius:20,border:"1px solid var(--line)"}},(acc.name||acc.username||"").split(" ").slice(0,2).join(" ")),
+        React.createElement('button',{onClick:()=>msalApp.logoutRedirect(),style:{padding:"4px 12px",borderRadius:20,border:"1px solid var(--line)",background:"transparent",color:"var(--ink-2)",fontSize:11,cursor:"pointer",fontFamily:"inherit"}},"Logga ut")
       )
     ),
-
-    React.createElement('div',{style:S.statsGrid},
-      [{icon:"☀️",label:"SEMESTERVECKOR",val:totalVac,sub:apprVac+" godkända · "+(totalVac-apprVac)+" väntar"},
-       {icon:"📞",label:"JOURVECKOR",val:totalJour,sub:apprJour+" godkända · "+(totalJour-apprJour)+" väntar"},
-       {icon:"✓",label:"KRITISKA VECKOR",val:critCov+"/4",sub:"v.28–31 täckta"},
-       {icon:"👥",label:"MEDARBETARE",val:EMPLOYEES.length,sub:EMPLOYEES.length+" aktiva"}
-      ].map((c,i)=>React.createElement('div',{key:i,style:S.statCard},
-        React.createElement('div',{style:S.statLabel},c.label),
-        React.createElement('div',{style:{display:"flex",alignItems:"baseline",gap:8}},
-          React.createElement('span',{style:{fontSize:14}},c.icon),
-          React.createElement('span',{style:S.statNum},c.val)
-        ),
-        React.createElement('div',{style:S.statSub},c.sub)
-      ))
+    React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:9,marginBottom:14}},
+      [{l:"SEMESTERVECKOR",v:tv,s:av+" godkända · "+(tv-av)+" väntar"},{l:"JOURVECKOR",v:tj,s:aj+" godkända · "+(tj-aj)+" väntar"},{l:"KRITISKA VECKOR",v:cc+"/4",s:"v.28–31 täckta"},{l:"MEDARBETARE",v:EMP.length,s:EMP.length+" aktiva"}].map((c,i)=>React.createElement('div',{key:i,style:{background:"var(--panel)",border:"1px solid var(--line)",borderRadius:10,padding:"11px 14px"}},React.createElement('div',{style:{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:"var(--ink-2)",marginBottom:3}},c.l),React.createElement('div',{style:{fontSize:24,fontWeight:800,color:"var(--ink)",lineHeight:1}},c.v),React.createElement('div',{style:{fontSize:10,color:"var(--ink-2)",marginTop:3}},c.s)))
     ),
-
-    React.createElement('div',{style:S.legend},
-      React.createElement('span',{style:{fontWeight:700,fontSize:9,textTransform:"uppercase",letterSpacing:"0.07em"}},"TECKENFÖRKLARING"),
-      React.createElement('span',{style:{background:"var(--vacation)",color:"var(--vacation-ink)",padding:"2px 8px",borderRadius:4}},"☀ Semester (godkänd)"),
-      React.createElement('span',{style:{background:"var(--oncall)",color:"var(--oncall-ink)",padding:"2px 8px",borderRadius:4}},"📞 Jour (godkänd)"),
-      React.createElement('span',{style:{border:"1.5px dashed var(--vacation)",color:"var(--vacation)",padding:"2px 7px",borderRadius:4}},"☀ Väntar"),
-      React.createElement('span',{style:{marginLeft:"auto",fontSize:10,color:"var(--ink-3)"}},"Klicka cell: lägg till/ta bort · Chef klickar godkänd rad: godkänn/ångra")
-    ),
-
-    React.createElement('div',{style:S.tableWrap},
+    React.createElement('div',{style:{overflowX:"auto"}},
       React.createElement('table',{style:{borderCollapse:"collapse",width:"100%"}},
-        React.createElement('thead',null,
-          React.createElement('tr',null,
-            React.createElement('th',{style:{...S.thSticky,borderRight:"2px solid var(--line-2)"}},"MEDARBETARE"),
-            ...WEEKS.map(wk=>React.createElement('th',{key:wk.w,style:{...S.th,color:OFFICIAL.includes(wk.w)?"var(--approved)":"var(--ink-2)",background:OFFICIAL.includes(wk.w)?"oklch(94% 0.03 255)":"var(--bg-2)"}},
-              React.createElement('div',null,wk.w),
-              React.createElement('div',{style:{fontWeight:400,color:"var(--ink-3)",fontSize:9}},wk.label)
-            ))
-          )
-        ),
+        React.createElement('thead',null,React.createElement('tr',null,
+          React.createElement('th',{style:{...T.thS,borderRight:"2px solid var(--line-2)"}},"MEDARBETARE"),
+          ...WKS.map(wk=>React.createElement('th',{key:wk.w,style:{...T.th,color:OFF.includes(wk.w)?"var(--approved)":"var(--ink-2)",background:OFF.includes(wk.w)?"oklch(94% 0.03 255)":"var(--bg-2)"}},React.createElement('div',null,wk.w),React.createElement('div',{style:{fontWeight:400,color:"var(--ink-3)",fontSize:9}},wk.l)))
+        )),
         React.createElement('tbody',null,
-          EMPLOYEES.map(emp=>React.createElement('tr',{key:emp.id},
-            React.createElement('td',{style:{...S.tdSticky,borderRight:"2px solid var(--line-2)"}},
-              React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8}},
-                React.createElement('div',{style:{...S.avatar,background:emp.color}},emp.id),
-                React.createElement('span',{style:{fontSize:13,fontWeight:500,whiteSpace:"nowrap"}},emp.name)
-              )
-            ),
-            ...WEEKS.map(wk=>{
-              const its=getItems(emp.id,wk.w);
-              return React.createElement('td',{key:wk.w,style:{...S.td,...(OFFICIAL.includes(wk.w)?S.tdOfficial:{})}},
-                React.createElement(Cell,{empId:emp.id,empName:emp.name,week:wk.w,items:its,onToggle:handleToggle,onApprove:handleApprove,isChef:true})
-              );
-            })
+          EMP.map(e=>React.createElement('tr',{key:e.id},
+            React.createElement('td',{style:{...T.tdS,borderRight:"2px solid var(--line-2)"}},React.createElement('div',{style:{display:"flex",alignItems:"center",gap:7}},React.createElement('div',{style:{...T.av,background:e.c}},e.id),React.createElement('span',{style:{fontSize:13,fontWeight:500,whiteSpace:"nowrap"}},e.name))),
+            ...WKS.map(wk=>React.createElement('td',{key:wk.w,style:{...T.td,...(OFF.includes(wk.w)?T.tdO:{})}},React.createElement(Cell,{eid:e.id,ename:e.name,week:wk.w,items:gi(e.id,wk.w),onToggle:toggle,onApprove:approve})))
           )),
           React.createElement('tr',null,
-            React.createElement('td',{style:{...S.tdSticky,background:"var(--bg-2)",borderRight:"2px solid var(--line-2)"}},
-              React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8}},
-                React.createElement('div',{style:{...S.avatar,background:"var(--oncall)"}},"📞"),
-                React.createElement('div',null,
-                  React.createElement('div',{style:{fontSize:12,fontWeight:600}},"Jour-täckning"),
-                  React.createElement('div',{style:{fontSize:10,color:"var(--ink-2)"}},"Krävs v.28–31")
-                )
-              )
-            ),
-            ...WEEKS.map(wk=>{
-              const jourhavande=items.filter(i=>i.Semestertyp==="Jour"&&i.Godkand&&i.Veckonummer===wk.w);
-              const isOff=OFFICIAL.includes(wk.w);
-              return React.createElement('td',{key:wk.w,style:{...S.td,background:isOff?"oklch(97% 0.01 255)":"var(--bg-2)"}},
-                jourhavande.length>0
-                  ?jourhavande.map(j=>React.createElement('div',{key:j.Id,style:{display:"inline-block",background:"var(--oncall)",color:"var(--oncall-ink)",borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:700,margin:1}},j.AnstalldId))
-                  :React.createElement('span',{style:{color:isOff?"var(--warn)":"var(--ink-3)",fontSize:10,fontWeight:isOff?600:400}},isOff?"–":"")
-              );
-            })
+            React.createElement('td',{style:{...T.tdS,background:"var(--bg-2)",borderRight:"2px solid var(--line-2)"}},React.createElement('div',{style:{display:"flex",alignItems:"center",gap:7}},React.createElement('div',{style:{...T.av,background:"var(--oncall)"}},"📞"),React.createElement('div',null,React.createElement('div',{style:{fontSize:11,fontWeight:600}},"Jour-täckning"),React.createElement('div',{style:{fontSize:9,color:"var(--ink-2)"}},"Krävs v.28–31")))),
+            ...WKS.map(wk=>{const jh=items.filter(i=>i.Semestertyp==="Jour"&&i.Godkand&&i.Veckonummer===wk.w),io=OFF.includes(wk.w);return React.createElement('td',{key:wk.w,style:{...T.td,background:io?"oklch(97% 0.01 255)":"var(--bg-2)"}},jh.length>0?jh.map(j=>React.createElement('span',{key:j.Id,style:{display:"inline-block",background:"var(--oncall)",color:"var(--oncall-ink)",borderRadius:4,padding:"1px 4px",fontSize:9,fontWeight:700,margin:1}},j.AnstalldId)):React.createElement('span',{style:{color:io?"var(--warn)":"var(--ink-3)",fontSize:9,fontWeight:io?600:400}},io?"–":""));})
           )
         )
       )
     ),
-
-    dataLoading&&React.createElement('div',{style:{position:"fixed",inset:0,background:"rgba(255,255,255,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:500,fontSize:14,color:"var(--ink)"}},"Laddar data från SharePoint..."),
-    React.createElement('div',{className:"save-toast"+(toast?" show":"")},toast||(saving?"Sparar...":"Sparad"))
+    dataLoad&&React.createElement('div',{style:{position:"fixed",inset:0,background:"rgba(255,255,255,.6)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:500,fontSize:14}},"Laddar från SharePoint..."),
+    React.createElement('div',{className:"toast"+(toast?" show":"")},toast||(saving?"Sparar...":""))
   );
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
 </script>
 </body>
 </html>

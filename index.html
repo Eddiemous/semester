@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="sv"><head>
+
+
+<meta charset="utf-8">
+<title>Semesterplanering – BIM Engine AB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --bg: oklch(98.6% 0.004 80);
+    --bg-2: oklch(96.5% 0.006 80);
+    --ink: oklch(22% 0.01 80);
+    --ink-2: oklch(42% 0.012 80);
+    --ink-3: oklch(62% 0.012 80);
+    --line: oklch(90% 0.006 80);
+    --line-2: oklch(85% 0.008 80);
+
+    /* State colors */
+    --vacation: oklch(88% 0.16 95);        /* gul */
+    --vacation-ink: oklch(40% 0.12 80);
+    --vacation-edge: oklch(78% 0.17 92);
+
+    --oncall: oklch(89% 0.09 150);         /* ljusgrön */
+    --oncall-ink: oklch(36% 0.09 150);
+    --oncall-edge: oklch(78% 0.12 148);
+
+    --approved: oklch(58% 0.14 255);       /* indigo */
+    --approved-soft: oklch(94% 0.03 255);
+
+    --warn: oklch(62% 0.18 30);
+    --warn-soft: oklch(95% 0.035 30);
+
+    --shadow-sm: 0 1px 2px rgba(20,18,12,0.04), 0 1px 1px rgba(20,18,12,0.03);
+    --shadow-md: 0 8px 24px -12px rgba(20,18,12,0.14), 0 2px 6px -2px rgba(20,18,12,0.06);
+    --shadow-lg: 0 20px 50px -20px rgba(20,18,12,0.22);
+
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-feature-settings: "cv11","ss01"; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-feature-settings: "zero","ss01"; }
+
+  /* Scroll */
+  .tl-scroll::-webkit-scrollbar { height: 10px; }
+  .tl-scroll::-webkit-scrollbar-track { background: transparent; }
+  .tl-scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; }
+  .tl-scroll::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+  /* Focus */
+  button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--approved); outline-offset: 2px; border-radius: 4px; }
+
+  /* Cell animations */
+  @keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .cell-fill { animation: pop 180ms cubic-bezier(.2,.8,.2,1.2); }
+
+  @keyframes slide-in { from { transform: translateY(-6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .menu { animation: slide-in 140ms ease-out; }
+
+  /* Tooltip */
+  .tip {
+    position: absolute; z-index: 50; background: var(--ink); color: #fff; padding: 6px 9px; border-radius: 6px;
+    font-size: 11.5px; white-space: nowrap; pointer-events: none; box-shadow: var(--shadow-md);
+    font-weight: 500;
+  }
+  .tip::after { content: ""; position: absolute; left: 50%; top: 100%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--ink); }
+
+  /* Striped pattern for unapproved */
+  .striped-vacation {
+    background-image: repeating-linear-gradient(135deg, var(--vacation) 0 6px, oklch(93% 0.14 95) 6px 10px);
+  }
+  .striped-oncall {
+    background-image: repeating-linear-gradient(135deg, var(--oncall) 0 6px, oklch(93% 0.07 150) 6px 10px);
+  }
+</style>
+</head>
+<body>
+<nav style="max-width:1400px;margin:18px auto 0;padding:0 28px;display:flex;gap:4px;">
+  <div style="display:flex;gap:4px;padding:4px;background:oklch(96.5% 0.006 80);border:1px solid oklch(90% 0.006 80);border-radius:10px;">
+    <span style="padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:#fff;color:oklch(22% 0.01 80);border:1px solid oklch(90% 0.006 80);font-family:Inter,system-ui,sans-serif;">v1 · Ljust original</span>
+    <a href="Semesterplanering v2 (mörk).html" style="padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;color:oklch(62% 0.012 80);text-decoration:none;font-family:Inter,system-ui,sans-serif;">v2 · Mörk minimalistisk</a>
+  </div>
+</nav>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+/* ============================================================
+   TWEAKS — persisted defaults
+   ============================================================ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showWeekends": false,
+  "density": "comfortable",
+  "showCoverageBar": true,
+  "lockedForEmployees": false
+}/*EDITMODE-END*/;
+
+/* ============================================================
+   DATA
+   ============================================================ */
+const EMPLOYEES = [
+  { id: "nh", name: "Niklas Hugosson",   role: "VD",             initials: "NH", hue: 24 },
+  { id: "ak", name: "Amanda Karlsson",   role: "BIM-samordnare", initials: "AK", hue: 200 },
+  { id: "fc", name: "Frida Clarstedt",   role: "Konstruktör",    initials: "FC", hue: 340 },
+  { id: "em", name: "Edmon Moussally",   role: "BIM-tekniker",   initials: "EM", hue: 150 },
+  { id: "mm", name: "Mahdi El Mahdi",    role: "Konstruktör",    initials: "ME", hue: 280 },
+  { id: "ad", name: "Adrian Duveholt",   role: "BIM-tekniker",   initials: "AD", hue: 55 },
+  { id: "hc", name: "Hedvig Cederberg",  role: "Projektledare",  initials: "HC", hue: 5 },
+  { id: "ff", name: "Franz Fjellman",    role: "Konstruktör",    initials: "FF", hue: 110 },
+];
+
+// ISO week -> Monday date (2026 season)
+function isoMonday(year, week) {
+  // Jan 4 is always in ISO week 1
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Dow = (jan4.getUTCDay() + 6) % 7; // Mon=0
+  const week1Mon = new Date(jan4); week1Mon.setUTCDate(jan4.getUTCDate() - jan4Dow);
+  const d = new Date(week1Mon);
+  d.setUTCDate(week1Mon.getUTCDate() + (week - 1) * 7);
+  return d;
+}
+const MONTHS_SV = ["jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"];
+function fmtDM(d) { return `${d.getUTCDate()} ${MONTHS_SV[d.getUTCMonth()]}`; }
+
+const WEEKS = [];
+for (let w = 18; w <= 39; w++) {
+  const mon = isoMonday(2026, w);
+  const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6);
+  WEEKS.push({
+    num: w,
+    monday: mon,
+    sunday: sun,
+    month: mon.getUTCMonth(), // 0-indexed; may shift across boundary but label by Monday
+    label: `v.${w}`,
+  });
+}
+
+// Group weeks by month for the month header
+function monthGroups(weeks) {
+  const groups = [];
+  for (const w of weeks) {
+    const last = groups[groups.length - 1];
+    if (last && last.month === w.month) last.count += 1;
+    else groups.push({ month: w.month, count: 1 });
+  }
+  return groups;
+}
+
+/* ============================================================
+   STATE SHAPE
+   cells: { [employeeId]: { [weekNum]: { type: 'vacation'|'oncall', approved: bool } } }
+   ============================================================ */
+const STORAGE_KEY = "bim-semester-2026-v1";
+
+function seedState() {
+  // Prefill a plausible draft so the app shows life on first load
+  const s = {};
+  EMPLOYEES.forEach(e => { s[e.id] = {}; });
+  const set = (id, weeks, type, approved=false) => {
+    weeks.forEach(w => { s[id][w] = { type, approved }; });
+  };
+  // Semesterveckor (typisk svensk sommarsemester)
+  set("nh", [28,29,30,31], "vacation", true);
+  set("ak", [27,28,29], "vacation", true);
+  set("fc", [29,30,31,32], "vacation", false);
+  set("em", [30,31,32,33], "vacation", false);
+  set("mm", [26,27,28], "vacation", true);
+  set("ad", [31,32,33], "vacation", false);
+  set("hc", [28,29,30], "vacation", false);
+  set("ff", [32,33,34,35], "vacation", false);
+  // Jour-täckning (en person per vecka, undviker deras semester)
+  set("nh", [18,19], "oncall", true);
+  set("ak", [20,21], "oncall", true);
+  set("mm", [22,23], "oncall", true);
+  set("hc", [24,25], "oncall", false);
+  set("fc", [26,27], "oncall", false);
+  set("ad", [34,35], "oncall", false);
+  set("em", [36,37], "oncall", false);
+  set("ff", [38,39], "oncall", false);
+  return s;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return seedState();
+    const parsed = JSON.parse(raw);
+    // sanity
+    if (typeof parsed === "object" && parsed) return parsed;
+  } catch(e) {}
+  return seedState();
+}
+
+function loadTweaks() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + ":tweaks");
+    if (raw) return { ...TWEAK_DEFAULTS, ...JSON.parse(raw) };
+  } catch(e) {}
+  return { ...TWEAK_DEFAULTS };
+}
+
+/* ============================================================
+   ICONS (simple geometric, no AI slop)
+   ============================================================ */
+const Icon = {
+  check: (p) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" {...p}><path d="M2.5 7.2L5.6 10.3L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  x: (p) => <svg width="12" height="12" viewBox="0 0 12 12" fill="none" {...p}><path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+  sun: (p) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" {...p}><circle cx="7" cy="7" r="2.6" stroke="currentColor" strokeWidth="1.5"/><path d="M7 1.2V2.6M7 11.4V12.8M1.2 7H2.6M11.4 7H12.8M2.9 2.9L3.9 3.9M10.1 10.1L11.1 11.1M2.9 11.1L3.9 10.1M10.1 3.9L11.1 2.9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  phone: (p) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" {...p}><path d="M2.5 2.8C2.5 2.3 2.9 1.8 3.4 1.8L4.8 1.8C5.2 1.8 5.5 2 5.6 2.4L6.2 4.1C6.3 4.4 6.2 4.8 6 5L5.1 5.8C5.9 7.4 7.1 8.6 8.7 9.4L9.5 8.5C9.7 8.3 10.1 8.2 10.4 8.3L12.1 8.9C12.5 9 12.7 9.3 12.7 9.7V11.1C12.7 11.6 12.2 12 11.7 12C6.6 12 2.5 7.9 2.5 2.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>,
+  trash: (p) => <svg width="12" height="12" viewBox="0 0 12 12" fill="none" {...p}><path d="M2.5 3.5H9.5M5 5.5V8.5M7 5.5V8.5M3.5 3.5L4 10C4 10.3 4.2 10.5 4.5 10.5H7.5C7.8 10.5 8 10.3 8 10L8.5 3.5M4.5 3.5V2.5C4.5 2.2 4.7 2 5 2H7C7.3 2 7.5 2.2 7.5 2.5V3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  chevron: (p) => <svg width="10" height="10" viewBox="0 0 10 10" fill="none" {...p}><path d="M3 4L5 6L7 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  warn: (p) => <svg width="14" height="14" viewBox="0 0 14 14" fill="none" {...p}><path d="M7 2L12.5 11.5H1.5L7 2Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M7 6V8.2M7 9.8V10.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  lock: (p) => <svg width="12" height="12" viewBox="0 0 12 12" fill="none" {...p}><rect x="2.5" y="5.5" width="7" height="5" rx="1" stroke="currentColor" strokeWidth="1.4"/><path d="M4 5.5V4C4 2.9 4.9 2 6 2C7.1 2 8 2.9 8 4V5.5" stroke="currentColor" strokeWidth="1.4"/></svg>,
+};
+
+/* ============================================================
+   UI BUILDING BLOCKS
+   ============================================================ */
+function Avatar({ emp, size=32 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: size,
+      background: `oklch(92% 0.04 ${emp.hue})`,
+      color: `oklch(38% 0.08 ${emp.hue})`,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontWeight: 600, fontSize: size * 0.38, letterSpacing: 0.3,
+      border: `1px solid oklch(84% 0.05 ${emp.hue})`,
+      flexShrink: 0,
+    }}>{emp.initials}</div>
+  );
+}
+
+function Pill({ tone="neutral", children, style, ...rest }) {
+  const tones = {
+    neutral: { bg: "var(--bg-2)", ink: "var(--ink-2)", bd: "var(--line)" },
+    vacation: { bg: "var(--vacation)", ink: "var(--vacation-ink)", bd: "var(--vacation-edge)" },
+    oncall:   { bg: "var(--oncall)",   ink: "var(--oncall-ink)",   bd: "var(--oncall-edge)" },
+    approved: { bg: "var(--approved-soft)", ink: "var(--approved)", bd: "oklch(88% 0.05 255)" },
+    warn:     { bg: "var(--warn-soft)", ink: "var(--warn)", bd: "oklch(86% 0.08 30)" },
+  };
+  const t = tones[tone];
+  return <span style={{
+    display: "inline-flex", alignItems: "center", gap: 5,
+    padding: "3px 8px", borderRadius: 999, fontSize: 11.5, fontWeight: 600,
+    background: t.bg, color: t.ink, border: `1px solid ${t.bd}`,
+    ...style
+  }} {...rest}>{children}</span>;
+}
+
+/* ============================================================
+   CELL — a single week cell for an employee row
+   ============================================================ */
+function Cell({ emp, week, entry, onOpen, density, isWeekend, highlight, locked }) {
+  const btnRef = useRef(null);
+  const w = density === "compact" ? 38 : 44;
+  const h = density === "compact" ? 34 : 40;
+
+  const isVac = entry?.type === "vacation";
+  const isOnc = entry?.type === "oncall";
+  const approved = entry?.approved;
+
+  let bg = "transparent", border = "1px solid var(--line)", color = "var(--ink-3)";
+  let extraClass = "";
+  if (isVac) {
+    color = "var(--vacation-ink)";
+    if (approved) { bg = "var(--vacation)"; border = "1px solid var(--vacation-edge)"; }
+    else { extraClass = "striped-vacation"; border = "1px dashed var(--vacation-edge)"; }
+  } else if (isOnc) {
+    color = "var(--oncall-ink)";
+    if (approved) { bg = "var(--oncall)"; border = "1px solid var(--oncall-edge)"; }
+    else { extraClass = "striped-oncall"; border = "1px dashed var(--oncall-edge)"; }
+  }
+
+  return (
+    <button
+      ref={btnRef}
+      onClick={(e) => { if (!locked) onOpen(emp.id, week.num, btnRef.current); }}
+      disabled={locked}
+      className={extraClass + (entry ? " cell-fill" : "")}
+      style={{
+        width: w, height: h, margin: 0, padding: 0,
+        background: bg, border, borderRadius: 8,
+        color, fontSize: 11, fontWeight: 600,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "transform 120ms, box-shadow 120ms, border-color 120ms",
+        position: "relative",
+        cursor: locked ? "not-allowed" : "pointer",
+        opacity: isWeekend ? 0.55 : 1,
+        boxShadow: highlight ? "0 0 0 2px var(--approved) inset" : "none",
+      }}
+      onMouseEnter={(e) => { if (!locked) e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+      aria-label={`${emp.name} vecka ${week.num}`}
+    >
+      {entry ? (
+        <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+          {isVac ? <Icon.sun /> : <Icon.phone />}
+          {approved && <Icon.check style={{ width: 10, height: 10 }} />}
+        </span>
+      ) : (
+        <span className="mono" style={{ opacity: 0.35, fontSize: 10 }}>·</span>
+      )}
+    </button>
+  );
+}
+
+/* ============================================================
+   POPOVER — opens when a cell is clicked
+   ============================================================ */
+function CellPopover({ emp, week, entry, anchor, onChange, onClose, isManager }) {
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!anchor) return;
+    const r = anchor.getBoundingClientRect();
+    const menuW = 260, menuH = 240;
+    let left = r.left + r.width/2 - menuW/2 + window.scrollX;
+    let top = r.bottom + 8 + window.scrollY;
+    if (left < 12) left = 12;
+    if (left + menuW > window.innerWidth - 12) left = window.innerWidth - menuW - 12;
+    if (top + menuH > window.innerHeight + window.scrollY - 12) top = r.top + window.scrollY - menuH - 8;
+    setPos({ top, left });
+  }, [anchor]);
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === "Escape") onClose(); }
+    function onClick(e) { if (ref.current && !ref.current.contains(e.target) && e.target !== anchor) onClose(); }
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("mousedown", onClick);
+    return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("mousedown", onClick); };
+  }, [onClose, anchor]);
+
+  const setType = (type) => {
+    if (entry?.type === type) {
+      onChange(null); // toggle off
+    } else {
+      onChange({ type, approved: false });
+    }
+  };
+  const toggleApproved = () => {
+    if (!entry) return;
+    onChange({ ...entry, approved: !entry.approved });
+  };
+  const remove = () => onChange(null);
+
+  return (
+    <div ref={ref} className="menu" style={{
+      position: "absolute", top: pos.top, left: pos.left,
+      width: 260, background: "#fff", borderRadius: 12,
+      boxShadow: "var(--shadow-lg)", border: "1px solid var(--line)",
+      padding: 12, zIndex: 100,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <Avatar emp={emp} size={28} />
+        <div style={{ lineHeight: 1.2 }}>
+          <div style={{ fontWeight: 600, fontSize: 13 }}>{emp.name}</div>
+          <div className="mono" style={{ fontSize: 11, color: "var(--ink-3)" }}>
+            v.{week.num} · {fmtDM(week.monday)}–{fmtDM(week.sunday)}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
+        <button onClick={() => setType("vacation")} style={{
+          padding: "8px 10px", borderRadius: 8, fontWeight: 600, fontSize: 12,
+          background: entry?.type === "vacation" ? "var(--vacation)" : "var(--bg-2)",
+          color: entry?.type === "vacation" ? "var(--vacation-ink)" : "var(--ink-2)",
+          border: `1px solid ${entry?.type === "vacation" ? "var(--vacation-edge)" : "var(--line)"}`,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}>
+          <Icon.sun /> Semester
+        </button>
+        <button onClick={() => setType("oncall")} style={{
+          padding: "8px 10px", borderRadius: 8, fontWeight: 600, fontSize: 12,
+          background: entry?.type === "oncall" ? "var(--oncall)" : "var(--bg-2)",
+          color: entry?.type === "oncall" ? "var(--oncall-ink)" : "var(--ink-2)",
+          border: `1px solid ${entry?.type === "oncall" ? "var(--oncall-edge)" : "var(--line)"}`,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}>
+          <Icon.phone /> Jour
+        </button>
+      </div>
+
+      {entry && (
+        <div style={{
+          padding: 10, borderRadius: 8, background: "var(--bg-2)",
+          border: "1px solid var(--line)", marginBottom: 8,
+        }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: isManager ? "pointer" : "not-allowed", fontSize: 12.5 }}>
+            <input
+              type="checkbox" checked={!!entry.approved} onChange={toggleApproved}
+              disabled={!isManager}
+              style={{ accentColor: "var(--approved)", width: 16, height: 16 }}
+            />
+            <span style={{ fontWeight: 600 }}>Godkänd av chef</span>
+            {!isManager && <Icon.lock style={{ color: "var(--ink-3)", marginLeft: "auto" }} />}
+          </label>
+          <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 4, marginLeft: 24 }}>
+            {entry.approved ? "Veckan är godkänd och låst." : "Väntar på godkännande."}
+          </div>
+        </div>
+      )}
+
+      {entry && (
+        <button onClick={remove} style={{
+          width: "100%", padding: "7px 10px", borderRadius: 8,
+          border: "1px solid var(--line)", background: "#fff",
+          color: "var(--ink-2)", fontSize: 12, fontWeight: 500,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        }}>
+          <Icon.trash /> Ta bort
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   COVERAGE BAR — jour-täckning per vecka
+   ============================================================ */
+function CoverageBar({ weeks, state, cellWidth, gap }) {
+  const coverage = weeks.map(w => {
+    const covers = EMPLOYEES.filter(e => state[e.id]?.[w.num]?.type === "oncall");
+    const approved = covers.filter(e => state[e.id][w.num].approved);
+    return { week: w, covers, approved };
+  });
+
+  return (
+    <div style={{ display: "flex", gap, alignItems: "stretch" }}>
+      {coverage.map(c => {
+        let bg, label, ink, bd;
+        if (c.approved.length >= 1) {
+          bg = "var(--oncall)"; ink = "var(--oncall-ink)"; bd = "var(--oncall-edge)";
+          label = c.approved[0].initials;
+        } else if (c.covers.length >= 1) {
+          bg = "oklch(96% 0.05 150)"; ink = "var(--oncall-ink)"; bd = "var(--oncall-edge)";
+          label = c.covers[0].initials + "?";
+        } else {
+          bg = "var(--warn-soft)"; ink = "var(--warn)"; bd = "oklch(86% 0.08 30)";
+          label = "–";
+        }
+        return (
+          <div key={c.week.num} style={{
+            width: cellWidth, height: 28, borderRadius: 6,
+            background: bg, color: ink, border: `1px solid ${bd}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 10.5, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace",
+          }} title={
+            c.approved.length ? `Jour: ${c.approved.map(e=>e.name).join(", ")}` :
+            c.covers.length ? `Föreslaget: ${c.covers.map(e=>e.name).join(", ")}` :
+            "Saknar jour-täckning"
+          }>
+            {label}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
+function App() {
+  const [state, setState] = useState(loadState);
+  const [tweaks, setTweaks] = useState(loadTweaks);
+  const [tweaksOpen, setTweaksOpen] = useState(false);
+  const [popover, setPopover] = useState(null); // { empId, weekNum, anchor }
+  const [role, setRole] = useState("manager"); // manager | employee
+  const [selectedEmp, setSelectedEmp] = useState("nh"); // used in employee mode
+  const [hoverRow, setHoverRow] = useState(null);
+  const [hoverCol, setHoverCol] = useState(null);
+  const scrollRef = useRef(null);
+
+  // Persist state
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }, [state]);
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY + ":tweaks", JSON.stringify(tweaks)); } catch(e) {}
+  }, [tweaks]);
+
+  /* -------- TWEAKS wiring (host toolbar) -------- */
+  useEffect(() => {
+    function onMsg(e) {
+      const d = e.data || {};
+      if (d.type === "__activate_edit_mode") setTweaksOpen(true);
+      if (d.type === "__deactivate_edit_mode") setTweaksOpen(false);
+    }
+    window.addEventListener("message", onMsg);
+    window.parent.postMessage({ type: "__edit_mode_available" }, "*");
+    return () => window.removeEventListener("message", onMsg);
+  }, []);
+  const setTweak = (k, v) => {
+    setTweaks(t => {
+      const next = { ...t, [k]: v };
+      window.parent.postMessage({ type: "__edit_mode_set_keys", edits: { [k]: v } }, "*");
+      return next;
+    });
+  };
+
+  const isManager = role === "manager";
+  const density = tweaks.density || "comfortable";
+  const cellW = density === "compact" ? 38 : 44;
+  const gap = 4;
+
+  /* -------- derived stats -------- */
+  const stats = useMemo(() => {
+    let vacApproved = 0, vacPending = 0, oncallApproved = 0, oncallPending = 0;
+    const weeksMissingCoverage = [];
+    for (const w of WEEKS) {
+      let hasApprovedOncall = false, hasAnyOncall = false;
+      for (const e of EMPLOYEES) {
+        const cell = state[e.id]?.[w.num];
+        if (!cell) continue;
+        if (cell.type === "vacation") cell.approved ? vacApproved++ : vacPending++;
+        if (cell.type === "oncall") {
+          hasAnyOncall = true;
+          if (cell.approved) { oncallApproved++; hasApprovedOncall = true; }
+          else oncallPending++;
+        }
+      }
+      if (!hasApprovedOncall) weeksMissingCoverage.push({ week: w, hasPending: hasAnyOncall });
+    }
+    return { vacApproved, vacPending, oncallApproved, oncallPending, weeksMissingCoverage };
+  }, [state]);
+
+  const pendingByEmp = (empId) => {
+    const s = state[empId] || {};
+    return Object.values(s).filter(v => !v.approved).length;
+  };
+
+  /* -------- cell interactions -------- */
+  const openCell = (empId, weekNum, anchor) => {
+    // In employee mode, lock other employees
+    if (!isManager && empId !== selectedEmp) return;
+    setPopover({ empId, weekNum, anchor });
+  };
+  const updateCell = (empId, weekNum, value) => {
+    setState(prev => {
+      const next = { ...prev, [empId]: { ...(prev[empId] || {}) } };
+      if (value == null) delete next[empId][weekNum];
+      else next[empId][weekNum] = value;
+      return next;
+    });
+  };
+
+  const approveAllForEmp = (empId) => {
+    setState(prev => {
+      const rows = { ...(prev[empId] || {}) };
+      for (const wk of Object.keys(rows)) rows[wk] = { ...rows[wk], approved: true };
+      return { ...prev, [empId]: rows };
+    });
+  };
+  const approveAllForWeek = (weekNum) => {
+    setState(prev => {
+      const next = { ...prev };
+      for (const e of EMPLOYEES) {
+        if (next[e.id]?.[weekNum]) {
+          next[e.id] = { ...next[e.id], [weekNum]: { ...next[e.id][weekNum], approved: true } };
+        }
+      }
+      return next;
+    });
+  };
+
+  /* -------- header month groups -------- */
+  const months = monthGroups(WEEKS);
+
+  /* -------- scroll to today-ish on mount -------- */
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    // no-op; timeline starts at vecka 18 which is in view
+  }, []);
+
+  const current = popover ? {
+    emp: EMPLOYEES.find(e => e.id === popover.empId),
+    week: WEEKS.find(w => w.num === popover.weekNum),
+    entry: state[popover.empId]?.[popover.weekNum] || null,
+  } : null;
+
+  return (
+    <div style={{ minHeight: "100vh", padding: "24px 28px 80px" }}>
+      {/* HEADER */}
+      <header style={{ maxWidth: 1400, margin: "0 auto 24px", display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--ink)", color: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, letterSpacing: 0.5 }}>BE</div>
+            <span className="mono" style={{ fontSize: 11, color: "var(--ink-3)", letterSpacing: 0.5, textTransform: "uppercase" }}>BIM Engine AB · Planering</span>
+          </div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, letterSpacing: -0.5 }}>Semester & Jour · Sommar 2026</h1>
+          <div style={{ fontSize: 13.5, color: "var(--ink-2)", marginTop: 4 }}>
+            <span className="mono">v.18 – v.39</span> · maj – september · 8 medarbetare
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {/* Role switch */}
+          <div style={{ display: "inline-flex", padding: 3, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 10 }}>
+            {[
+              { k: "manager", label: "Chefsvy" },
+              { k: "employee", label: "Medarbetarvy" },
+            ].map(r => (
+              <button key={r.k} onClick={() => setRole(r.k)} style={{
+                padding: "6px 12px", borderRadius: 7, fontSize: 12.5, fontWeight: 600,
+                background: role === r.k ? "#fff" : "transparent",
+                color: role === r.k ? "var(--ink)" : "var(--ink-3)",
+                boxShadow: role === r.k ? "var(--shadow-sm)" : "none",
+              }}>{r.label}</button>
+            ))}
+          </div>
+          {/* Employee selector in employee mode */}
+          {!isManager && (
+            <select value={selectedEmp} onChange={e => setSelectedEmp(e.target.value)} style={{
+              padding: "8px 10px", borderRadius: 8, border: "1px solid var(--line)",
+              background: "#fff", fontSize: 12.5, fontWeight: 500, color: "var(--ink)",
+              fontFamily: "inherit",
+            }}>
+              {EMPLOYEES.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
+          )}
+        </div>
+      </header>
+
+      {/* STAT STRIP */}
+      <div style={{ maxWidth: 1400, margin: "0 auto 16px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+        <StatCard
+          label="Semesterveckor"
+          value={stats.vacApproved + stats.vacPending}
+          sub={<><b style={{color:"var(--approved)"}}>{stats.vacApproved}</b> godkända · <b>{stats.vacPending}</b> väntar</>}
+          icon={<Icon.sun />}
+          tone="vacation"
+        />
+        <StatCard
+          label="Jourveckor"
+          value={stats.oncallApproved + stats.oncallPending}
+          sub={<><b style={{color:"var(--approved)"}}>{stats.oncallApproved}</b> godkända · <b>{stats.oncallPending}</b> väntar</>}
+          icon={<Icon.phone />}
+          tone="oncall"
+        />
+        <StatCard
+          label="Jour-täckning"
+          value={`${WEEKS.length - stats.weeksMissingCoverage.filter(w=>!w.hasPending).length}/${WEEKS.length}`}
+          sub={stats.weeksMissingCoverage.filter(w=>!w.hasPending).length === 0
+            ? <span style={{ color: "var(--oncall-ink)" }}>Hela perioden täckt</span>
+            : <span style={{ color: "var(--warn)" }}>{stats.weeksMissingCoverage.filter(w=>!w.hasPending).length} vecka(-or) utan jour</span>}
+          icon={<Icon.check />}
+          tone={stats.weeksMissingCoverage.filter(w=>!w.hasPending).length === 0 ? "approved" : "warn"}
+        />
+        <StatCard
+          label="Medarbetare"
+          value={EMPLOYEES.length}
+          sub={<>8 aktiva · {EMPLOYEES.filter(e => Object.values(state[e.id]||{}).some(v=>!v.approved)).length} med väntande rader</>}
+          icon={null}
+          tone="neutral"
+        />
+      </div>
+
+      {/* LEGEND */}
+      <div style={{ maxWidth: 1400, margin: "0 auto 14px", display: "flex", gap: 14, alignItems: "center", fontSize: 12, color: "var(--ink-2)", flexWrap: "wrap" }}>
+        <span style={{ fontWeight: 600, color: "var(--ink-2)", fontSize: 11.5, textTransform: "uppercase", letterSpacing: 0.6 }}>Teckenförklaring</span>
+        <LegendSwatch color="var(--vacation)" border="var(--vacation-edge)" icon={<Icon.sun/>} label="Semester (godkänd)" />
+        <LegendSwatch striped="vacation" icon={<Icon.sun/>} label="Semester (väntar)" />
+        <LegendSwatch color="var(--oncall)" border="var(--oncall-edge)" icon={<Icon.phone/>} label="Jour (godkänd)" />
+        <LegendSwatch striped="oncall" icon={<Icon.phone/>} label="Jour (väntar)" />
+        <span style={{ marginLeft: "auto", fontSize: 11.5, color: "var(--ink-3)" }}>
+          {isManager ? "Klicka på en vecka för att ändra. Kryssa i rutan för att godkänna." : "Du redigerar dina egna veckor. Chef godkänner."}
+        </span>
+      </div>
+
+      {/* TIMELINE */}
+      <section style={{
+        maxWidth: 1400, margin: "0 auto",
+        background: "#fff", border: "1px solid var(--line)", borderRadius: 14,
+        boxShadow: "var(--shadow-sm)", overflow: "hidden",
+      }}>
+        <div ref={scrollRef} className="tl-scroll" style={{ overflowX: "auto" }}>
+          <div style={{ minWidth: 280 + (cellW + gap) * WEEKS.length + 240 }}>
+            {/* Month row */}
+            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 240px", borderBottom: "1px solid var(--line)", background: "var(--bg-2)" }}>
+              <div style={{ padding: "10px 16px", fontSize: 11, fontWeight: 600, color: "var(--ink-3)", letterSpacing: 0.6, textTransform: "uppercase", borderRight: "1px solid var(--line)" }}>
+                Medarbetare
+              </div>
+              <div style={{ display: "flex", gap: 0, padding: "8px 12px", alignItems: "center" }}>
+                {months.map((m, i) => (
+                  <div key={i} style={{
+                    width: (cellW + gap) * m.count - gap,
+                    marginRight: i < months.length - 1 ? gap : 0,
+                    textAlign: "center",
+                    fontSize: 12.5, fontWeight: 600, color: "var(--ink-2)",
+                    textTransform: "capitalize",
+                    borderRight: i < months.length - 1 ? "1px dashed var(--line-2)" : "none",
+                    paddingRight: i < months.length - 1 ? 0 : 0,
+                  }}>
+                    {MONTHS_SV[m.month]}
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "10px 16px", fontSize: 11, fontWeight: 600, color: "var(--ink-3)", letterSpacing: 0.6, textTransform: "uppercase", borderLeft: "1px solid var(--line)", textAlign: "right" }}>
+                Sammanställning
+              </div>
+            </div>
+
+            {/* Week number row */}
+            <div style={{ display: "grid", gridTemplateColumns: "280px 1fr 240px", borderBottom: "1px solid var(--line)" }}>
+              <div style={{ padding: "8px 16px", fontSize: 11, color: "var(--ink-3)", borderRight: "1px solid var(--line)" }}>
+                <span className="mono">ISO-vecka / datum</span>
+              </div>
+              <div style={{ display: "flex", gap, padding: "6px 12px" }}>
+                {WEEKS.map(w => (
+                  <div key={w.num}
+                    onMouseEnter={() => setHoverCol(w.num)}
+                    onMouseLeave={() => setHoverCol(null)}
+                    style={{
+                    width: cellW, textAlign: "center", cursor: "default",
+                    background: hoverCol === w.num ? "var(--bg-2)" : "transparent",
+                    borderRadius: 6, padding: "4px 0",
+                  }}>
+                    <div className="mono" style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-2)" }}>{w.num}</div>
+                    <div className="mono" style={{ fontSize: 9.5, color: "var(--ink-3)", marginTop: 1 }}>{w.monday.getUTCDate()}/{w.monday.getUTCMonth()+1}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "8px 16px", borderLeft: "1px solid var(--line)", fontSize: 11, color: "var(--ink-3)", textAlign: "right" }}>
+                sem · jour · väntar
+              </div>
+            </div>
+
+            {/* Employee rows */}
+            {EMPLOYEES.map((emp, idx) => {
+              const row = state[emp.id] || {};
+              const vacCount = Object.values(row).filter(v => v.type === "vacation").length;
+              const oncCount = Object.values(row).filter(v => v.type === "oncall").length;
+              const pendCount = Object.values(row).filter(v => !v.approved).length;
+              const locked = !isManager && emp.id !== selectedEmp;
+              const rowHover = hoverRow === emp.id;
+              return (
+                <div key={emp.id}
+                  onMouseEnter={() => setHoverRow(emp.id)}
+                  onMouseLeave={() => setHoverRow(null)}
+                  style={{
+                    display: "grid", gridTemplateColumns: "280px 1fr 240px",
+                    borderBottom: idx < EMPLOYEES.length - 1 ? "1px solid var(--line)" : "none",
+                    background: rowHover ? "oklch(99% 0.003 80)" : "transparent",
+                    transition: "background 120ms",
+                    opacity: locked ? 0.55 : 1,
+                  }}>
+                  {/* Name cell */}
+                  <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: 12, borderRight: "1px solid var(--line)" }}>
+                    <Avatar emp={emp} size={36} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 600, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{emp.name}</div>
+                    </div>
+                    {pendCount > 0 && isManager && (
+                      <button onClick={() => approveAllForEmp(emp.id)} style={{
+                        padding: "4px 8px", borderRadius: 6, background: "var(--approved-soft)", color: "var(--approved)",
+                        border: "1px solid oklch(88% 0.05 255)", fontSize: 11, fontWeight: 600,
+                        display: "flex", alignItems: "center", gap: 4,
+                      }} title="Godkänn alla rader för denna person">
+                        <Icon.check /> {pendCount}
+                      </button>
+                    )}
+                  </div>
+                  {/* Week cells */}
+                  <div style={{ display: "flex", gap, padding: "10px 12px", alignItems: "center" }}>
+                    {WEEKS.map(w => (
+                      <Cell
+                        key={w.num} emp={emp} week={w}
+                        entry={row[w.num]}
+                        onOpen={openCell}
+                        density={density}
+                        highlight={hoverCol === w.num}
+                        locked={locked}
+                      />
+                    ))}
+                  </div>
+                  {/* Summary cell */}
+                  <div style={{ padding: "10px 16px", borderLeft: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                    {vacCount > 0 && <Pill tone="vacation"><Icon.sun/> {vacCount}v</Pill>}
+                    {oncCount > 0 && <Pill tone="oncall"><Icon.phone/> {oncCount}v</Pill>}
+                    {pendCount > 0 && <Pill tone="warn">{pendCount} väntar</Pill>}
+                    {vacCount === 0 && oncCount === 0 && <Pill tone="neutral">Inget planerat</Pill>}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* COVERAGE ROW */}
+            {tweaks.showCoverageBar && (
+              <div style={{
+                display: "grid", gridTemplateColumns: "280px 1fr 240px",
+                borderTop: "2px solid var(--line)",
+                background: "oklch(98% 0.01 150)",
+              }}>
+                <div style={{ padding: "12px 16px", borderRight: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--oncall)", color: "var(--oncall-ink)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--oncall-edge)" }}>
+                    <Icon.phone />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>Jour-täckning</div>
+                    <div style={{ fontSize: 11.5, color: "var(--ink-3)" }}>En person per vecka</div>
+                  </div>
+                </div>
+                <div style={{ padding: "12px 12px", display: "flex", alignItems: "center" }}>
+                  <CoverageBar weeks={WEEKS} state={state} cellWidth={cellW} gap={gap} />
+                </div>
+                <div style={{ padding: "12px 16px", borderLeft: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                  {stats.weeksMissingCoverage.filter(w=>!w.hasPending).length === 0 ? (
+                    <Pill tone="approved"><Icon.check/> Hela perioden</Pill>
+                  ) : (
+                    <Pill tone="warn"><Icon.warn/> {stats.weeksMissingCoverage.filter(w=>!w.hasPending).length} luckor</Pill>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* MISSING COVERAGE ALERT */}
+      {stats.weeksMissingCoverage.filter(w=>!w.hasPending).length > 0 && isManager && (
+        <div style={{
+          maxWidth: 1400, margin: "14px auto 0",
+          background: "var(--warn-soft)", border: "1px solid oklch(86% 0.08 30)",
+          borderRadius: 12, padding: "14px 16px",
+          display: "flex", alignItems: "center", gap: 12,
+        }}>
+          <div style={{ color: "var(--warn)" }}><Icon.warn/></div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--warn)" }}>Jour saknas för {stats.weeksMissingCoverage.filter(w=>!w.hasPending).length} vecka(-or)</div>
+            <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 2 }}>
+              Veckor: <span className="mono">{stats.weeksMissingCoverage.filter(w=>!w.hasPending).map(x=>x.week.num).join(", ")}</span> — tilldela en person med godkänd jour.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPOVER */}
+      {current && (
+        <CellPopover
+          emp={current.emp}
+          week={current.week}
+          entry={current.entry}
+          anchor={popover.anchor}
+          isManager={isManager}
+          onChange={(v) => { updateCell(popover.empId, popover.weekNum, v); if (v == null) setPopover(null); }}
+          onClose={() => setPopover(null)}
+        />
+      )}
+
+      {/* TWEAKS PANEL */}
+      {tweaksOpen && (
+        <TweaksPanel tweaks={tweaks} setTweak={setTweak} onReset={() => {
+          setState(seedState());
+          localStorage.removeItem(STORAGE_KEY);
+        }} onClear={() => {
+          const empty = {}; EMPLOYEES.forEach(e => empty[e.id] = {});
+          setState(empty);
+        }} />
+      )}
+
+      {/* FOOTER */}
+      <footer style={{ maxWidth: 1400, margin: "24px auto 0", fontSize: 11.5, color: "var(--ink-3)", display: "flex", justifyContent: "space-between" }}>
+        <span>Ändringar sparas automatiskt lokalt. Dela länken med teamet när planeringen ska fyllas i.</span>
+        <span className="mono">BIM Engine · 2026 Q2–Q3</span>
+      </footer>
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub, icon, tone }) {
+  const tones = {
+    vacation: { bg: "var(--vacation)", ink: "var(--vacation-ink)", bd: "var(--vacation-edge)" },
+    oncall: { bg: "var(--oncall)", ink: "var(--oncall-ink)", bd: "var(--oncall-edge)" },
+    approved: { bg: "var(--approved-soft)", ink: "var(--approved)", bd: "oklch(88% 0.05 255)" },
+    warn: { bg: "var(--warn-soft)", ink: "var(--warn)", bd: "oklch(86% 0.08 30)" },
+    neutral: { bg: "var(--bg-2)", ink: "var(--ink-2)", bd: "var(--line)" },
+  };
+  const t = tones[tone] || tones.neutral;
+  return (
+    <div style={{
+      background: "#fff", border: "1px solid var(--line)", borderRadius: 12,
+      padding: "12px 14px", display: "flex", alignItems: "center", gap: 12,
+    }}>
+      {icon && (
+        <div style={{ width: 36, height: 36, borderRadius: 8, background: t.bg, color: t.ink, border: `1px solid ${t.bd}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {icon}
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
+        <div style={{ fontSize: 11.5, color: "var(--ink-2)", marginTop: 1 }}>{sub}</div>
+      </div>
+    </div>
+  );
+}
+
+function LegendSwatch({ color, border, striped, icon, label }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      <span className={striped === "vacation" ? "striped-vacation" : striped === "oncall" ? "striped-oncall" : ""} style={{
+        width: 22, height: 16, borderRadius: 4,
+        background: striped ? undefined : color,
+        border: striped ? `1px dashed ${striped === "vacation" ? "var(--vacation-edge)" : "var(--oncall-edge)"}` : `1px solid ${border}`,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        color: striped === "vacation" ? "var(--vacation-ink)" : "var(--oncall-ink)",
+      }}>{React.cloneElement(icon, { style: { width: 10, height: 10 } })}</span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function TweaksPanel({ tweaks, setTweak, onReset, onClear }) {
+  return (
+    <div style={{
+      position: "fixed", bottom: 20, right: 20,
+      width: 280, background: "#fff", borderRadius: 12,
+      boxShadow: "var(--shadow-lg)", border: "1px solid var(--line)",
+      padding: 14, zIndex: 200, fontSize: 12.5,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <div style={{ fontWeight: 700, fontSize: 13 }}>Tweaks</div>
+        <span className="mono" style={{ fontSize: 10, color: "var(--ink-3)" }}>v1</span>
+      </div>
+
+      <TweakRow label="Täthet">
+        <div style={{ display: "inline-flex", padding: 2, background: "var(--bg-2)", borderRadius: 7, border: "1px solid var(--line)" }}>
+          {["comfortable","compact"].map(k => (
+            <button key={k} onClick={() => setTweak("density", k)} style={{
+              padding: "4px 9px", borderRadius: 5, fontSize: 11.5, fontWeight: 600,
+              background: tweaks.density === k ? "#fff" : "transparent",
+              color: tweaks.density === k ? "var(--ink)" : "var(--ink-3)",
+              boxShadow: tweaks.density === k ? "var(--shadow-sm)" : "none",
+            }}>{k === "comfortable" ? "Bekväm" : "Kompakt"}</button>
+          ))}
+        </div>
+      </TweakRow>
+
+      <TweakRow label="Jour-rad">
+        <Switch on={tweaks.showCoverageBar} onChange={v => setTweak("showCoverageBar", v)} />
+      </TweakRow>
+
+      <TweakRow label="Visa helger">
+        <Switch on={tweaks.showWeekends} onChange={v => setTweak("showWeekends", v)} />
+      </TweakRow>
+
+      <div style={{ height: 1, background: "var(--line)", margin: "10px 0" }} />
+
+      <div style={{ display: "flex", gap: 6 }}>
+        <button onClick={onReset} style={{
+          flex: 1, padding: "6px 8px", borderRadius: 7, border: "1px solid var(--line)", background: "var(--bg-2)", fontWeight: 600, fontSize: 11.5, color: "var(--ink-2)",
+        }}>Återställ exempel</button>
+        <button onClick={onClear} style={{
+          flex: 1, padding: "6px 8px", borderRadius: 7, border: "1px solid var(--line)", background: "#fff", fontWeight: 600, fontSize: 11.5, color: "var(--warn)",
+        }}>Töm allt</button>
+      </div>
+    </div>
+  );
+}
+function TweakRow({ label, children }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0" }}>
+      <span style={{ color: "var(--ink-2)", fontWeight: 500 }}>{label}</span>
+      {children}
+    </div>
+  );
+}
+function Switch({ on, onChange }) {
+  return (
+    <button onClick={() => onChange(!on)} style={{
+      width: 36, height: 20, borderRadius: 999,
+      background: on ? "var(--approved)" : "var(--line-2)",
+      position: "relative", transition: "background 140ms",
+    }}>
+      <span style={{
+        position: "absolute", top: 2, left: on ? 18 : 2,
+        width: 16, height: 16, borderRadius: 999, background: "#fff",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.2)", transition: "left 140ms",
+      }} />
+    </button>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+
+</body></html>
